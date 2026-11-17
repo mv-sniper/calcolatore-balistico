@@ -20,7 +20,7 @@ export const store = loadStore();
 store.settings.units = { ...defaultUnits(), ...(store.settings.units || {}) };
 store.settings.calc = { ...defaultCalc(), ...(store.settings.calc || {}) };
 
-export const ui = { tab: 'calc', form: null, toast: '' };
+export const ui = { tab: 'calc', form: null, toast: '', bulletBrand: '', ammoBrand: '' };
 
 export const persist = () => saveStore(store);
 export const U = (fam) => store.settings.units[fam];

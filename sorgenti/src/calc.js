@@ -31,7 +31,16 @@ export function buildInputs() {
   } else if (bullet) {
     const b = (bullet.bcs || []).find((x) => x.value > 0 && x.model === 'G7') || (bullet.bcs || []).find((x) => x.value > 0);
     if (!b) errors.push('La palla non ha un coefficiente balistico (BC).');
-    else { model = b.model; bcv = b.value; notes.push(`BC usato: ${model} ${num(bcv, 3)}${bullet.verified ? '' : ' (dato non verificato dal produttore)'}.`); }
+    else {
+      model = b.model;
+      if (Array.isArray(b.bands) && b.bands.length) {
+        bcv = b.bands.map((x) => ({ vMps: x.fps * 0.3048, bc: x.value }));
+        notes.push(`BC usato: ${model} a bande di velocità (${b.bands.map((x) => `${num(x.value, 3)} da ${Math.round(x.fps)} fps`).join(', ')}), come pubblicato dal produttore.`);
+      } else {
+        bcv = b.value;
+        notes.push(`BC usato: ${model} ${num(bcv, 3)}${bullet.verified ? ' (pubblicato dal produttore)' : ' (dato non verificato dal produttore)'}.`);
+      }
+    }
   }
   if (bullet) {
     if (!(bullet.weightGr > 0)) errors.push('Manca il peso della palla.');

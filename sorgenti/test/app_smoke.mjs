@@ -233,6 +233,46 @@ console.log('12. Backup e ripristino');
   ok(bal().store.rifles.length >= 1, 'un file non valido non cancella i dati');
 }
 
+console.log('12b. Archivio palle e munizioni commerciali');
+{
+  click($$('nav button')[3]);
+  const n0 = $$('article').length;
+  ok(n0 > 40, `elenco palle dell'archivio (${n0} voci)`);
+  choose('[data-act=filter-bullet-brand]', 'Berger');
+  ok($$('article').length === 14 && /Berger/.test($('main').textContent), 'filtro per marca: 14 palle Berger');
+  ok(/lunghezza 32,\d|lunghezza 3\d,\d/.test($('main').textContent) || /lunghezza/.test($('main').textContent), 'lunghezza mostrata');
+  choose('[data-act=filter-bullet-brand]', '');
+  click($$('nav button')[2]);
+  choose('[data-act=filter-ammo-brand]', 'Federal');
+  ok($$('[data-act=seed-ammo]').length === 2, 'due munizioni Federal Gold Medal');
+  const btn = $$('[data-act=seed-ammo]').find((b) => b.dataset.id === 'seed-ammo-federal-gmm-175');
+  click(btn);
+  const d = bal().ui.form.draft;
+  near(d.mvMps, 2600 * 0.3048, 0.1, 'velocità dichiarata 2600 fps = 792,5 m/s');
+  ok(d.kind === 'factory' && d.mvSource === 'declared', 'tipo commerciale, origine "dichiarata"');
+  ok(d.bcOverride.model === 'G7' && d.bcOverride.value === 0.25, 'BC G7 0,25 dichiarato da Federal');
+  click($('[data-act=save]'));
+  const saved = bal().store.cartridges.at(-1);
+  ok(!bal().ui.form && /Federal/.test(saved.name), 'cartuccia salvata: ' + saved.name);
+  click($$('nav button')[0]);
+  choose('[data-path=cartridgeId]', saved.id);
+  r = bal().compute();
+  ok(r.ok, 'calcolo riuscito con la munizione Federal: ' + (r.errors || []).join('; '));
+  console.log('     Federal 175 gr, 2600 fps, 1100 m: alzo', r.single.elevationMrad.toFixed(2));
+  ok(/personalizzato/i.test(r.notes.join(' ')), 'nota: BC personalizzato (dichiarato dal produttore) in uso');
+  // Hornady con bande
+  click($$('nav button')[2]);
+  choose('[data-act=filter-ammo-brand]', 'Hornady');
+  click($$('[data-act=seed-ammo]').find((b) => b.dataset.id === 'seed-ammo-hornady-match-168-eld'));
+  click($('[data-act=save]'));
+  const hc = bal().store.cartridges.at(-1);
+  click($$('nav button')[0]);
+  choose('[data-path=cartridgeId]', hc.id);
+  r = bal().compute();
+  ok(r.ok && /bande di velocità/.test(r.notes.join(' ')), 'Hornady: BC a bande di velocità usato');
+  ok(r.single.spinApplied === false && r.warnings.some((x) => /lunghezza/i.test(x)), 'Hornady: lunghezza non pubblicata -> avviso');
+}
+
 console.log('13. Persistenza');
 {
   const saved = JSON.parse(w.localStorage.getItem('ballistica.v1'));

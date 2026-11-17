@@ -5,7 +5,7 @@ import { esc, numField, textField, selectField, checkField } from './fields.js';
 import { compute, resultsHtml, summaryHtml } from './calc.js';
 import { parseShotViewCsv, shotStats, flagOutliers } from './csv_garmin.js';
 import { upsert, remove, exportBackup, importBackup, emptyStore, uid } from './store.js';
-import { SEED_BULLETS, SUGGEST } from './db_seed.js';
+import { SEED_BULLETS, SEED_AMMO, SUGGEST } from './db_seed.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const TABS = [['calc', 'Calcola'], ['rifles', 'Carabine'], ['cartridges', 'Cartucce'], ['bullets', 'Palle'], ['more', 'Altro']];
@@ -83,18 +83,29 @@ function viewCartridges() {
     lines.push(x.mvMps ? `${fmt('speed', U('speed'), x.mvMps, 1)} ${FAMILIES.speed.units[U('speed')].label}${x.mvSdMps != null ? ` · SD ${num(x.mvSdMps, 1)} m/s` : ''}${x.mvN ? ` · ${x.mvN} colpi` : ''}${x.mvSource === 'garmin' ? ' · Garmin' : ''}` : 'Velocità iniziale mancante');
     return listCard(x.name || '(senza nome)', lines, x.id, 'cartridge');
   }).join('');
-  return `<h1>Cartucce</h1>${items || '<p class="sub">Nessuna cartuccia.</p>'}<div class="btnrow"><button class="primary" data-act="new" data-kind="cartridge">Nuova cartuccia</button></div>`;
+  const brands = [...new Set(SEED_AMMO.map((x) => x.brand))].sort();
+  const ammo = SEED_AMMO.filter((x) => !ui.ammoBrand || x.brand === ui.ammoBrand).map((x) => {
+    const b = bulletById(x.bulletId);
+    const bc = x.bc ? `${x.bc.model} ${num(x.bc.value, 3)} (munizione)` : (b ? (b.bcs || []).filter((y) => y.value > 0).map((y) => `${y.model} ${num(y.value, 3)}`).join(' · ') : '');
+    return `<article class="card item"><div><h3>${esc(`${x.brand} ${x.line}`)} · ${num(x.weightGr, 0)} gr</h3><p>Codice ${esc(x.code)} · ${fmt('speed', U('speed'), x.mvMps, 0)} ${FAMILIES.speed.units[U('speed')].label} dichiarati${x.barrelMm ? ` su canna da ${fmt('length', U('length'), x.barrelMm, 0)} ${FAMILIES.length.units[U('length')].label}` : ' (canna di prova non indicata)'}${bc ? ` · BC ${esc(bc)}` : ''}</p>${x.notes ? `<p class="sub">${esc(x.notes)}</p>` : ''}${(x.sources || []).map((y) => `<p class="sub">Fonte: ${esc(y)}</p>`).join('')}</div><div class="btnrow"><button data-act="seed-ammo" data-id="${esc(x.id)}">Aggiungi alle mie cartucce</button></div></article>`;
+  }).join('');
+  const filter = `<label class="fld"><span>Marca</span><select data-act="filter-ammo-brand"><option value="">Tutte (${SEED_AMMO.length} munizioni)</option>${brands.map((x) => `<option value="${esc(x)}"${x === ui.ammoBrand ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select></label>`;
+  return `<h1>Cartucce</h1>${items || '<p class="sub">Nessuna cartuccia.</p>'}<div class="btnrow"><button class="primary" data-act="new" data-kind="cartridge">Nuova cartuccia</button></div>
+<details class="card"${ui.ammoBrand ? ' open' : ''}><summary>Munizioni commerciali dall'archivio</summary><p class="sub">Velocità dichiarate dai produttori su canne di prova: nella tua carabina saranno diverse. Dopo l'aggiunta puoi correggere la velocità con quella misurata al cronografo.</p>${filter}${ammo}</details>`;
 }
 
 function viewBullets() {
-  const items = allBullets().map((b) => {
-    const bc = (b.bcs || []).filter((x) => x.value > 0).map((x) => `${x.model} ${num(x.value, 3)}`).join(' · ') || 'BC mancante';
-    const badge = b.seed ? `<span class="pill">Archivio${b.verified ? '' : ' · non verificato'}</span>` : '<span class="pill alt">Tua</span>';
-    const card = `<article class="card item"><div><h3>${esc(`${b.brand} ${b.name}`)} ${badge}</h3><p>${fmt('mass', U('mass'), b.weightGr) || num(b.weightGr, 1)} ${FAMILIES.mass.units[U('mass')].label} · ${esc(bc)}${b.lengthMm ? ` · lunghezza ${fmt('length', U('length'), b.lengthMm)} ${FAMILIES.length.units[U('length')].label}` : ''}</p>${b.notes ? `<p class="sub">${esc(b.notes)}</p>` : ''}${(b.sources || []).map((s) => `<p class="sub">Fonte: ${esc(s)}</p>`).join('')}</div>
+  const all = allBullets();
+  const brands = [...new Set(all.map((b) => b.brand))].sort();
+  const list = all.filter((b) => !ui.bulletBrand || b.brand === ui.bulletBrand);
+  const items = list.map((b) => {
+    const bc = (b.bcs || []).filter((x) => x.value > 0).map((x) => `${x.model} ${num(x.value, 3)}${x.bands ? ' (bande)' : ''}`).join(' · ') || 'BC mancante';
+    const badge = b.seed ? `<span class="pill">Archivio${b.verified ? ' · produttore' : ' · non verificato'}</span>` : '<span class="pill alt">Tua</span>';
+    return `<article class="card item"><div><h3>${esc(`${b.brand} ${b.name}`)} ${badge}</h3><p>${fmt('mass', U('mass'), b.weightGr) || num(b.weightGr, 1)} ${FAMILIES.mass.units[U('mass')].label} · ${esc(bc)}${b.lengthMm ? ` · lunghezza ${fmt('length', U('length'), b.lengthMm)} ${FAMILIES.length.units[U('length')].label}` : ' · lunghezza n.d.'}</p>${b.notes ? `<p class="sub">${esc(b.notes)}</p>` : ''}${(b.sources || []).map((x) => `<p class="sub">Fonte: ${esc(x)}</p>`).join('')}</div>
     <div class="btnrow">${b.seed ? `<button data-act="dup" data-kind="bullet" data-id="${esc(b.id)}">Copia per modificare</button>` : `<button data-act="edit" data-kind="bullet" data-id="${esc(b.id)}">Modifica</button><button data-act="dup" data-kind="bullet" data-id="${esc(b.id)}">Duplica</button><button class="danger" data-act="del" data-kind="bullet" data-id="${esc(b.id)}">Elimina</button>`}</div></article>`;
-    return card;
   }).join('');
-  return `<h1>Palle</h1><p class="sub">L'archivio incorporato contiene per ora ${SEED_BULLETS.length} palla con la fonte dei dati. Le altre le aggiungi tu o arrivano con gli aggiornamenti.</p>${items}<div class="btnrow"><button class="primary" data-act="new" data-kind="bullet">Nuova palla</button></div>`;
+  const filter = `<label class="fld"><span>Marca</span><select data-act="filter-bullet-brand"><option value="">Tutte (${all.length} palle)</option>${brands.map((x) => `<option value="${esc(x)}"${x === ui.bulletBrand ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select></label>`;
+  return `<h1>Palle</h1><p class="sub">L'archivio contiene palle da .308 con i dati pubblicati dai produttori (Sierra, Berger, Lapua, Hornady, Nosler e le palle delle munizioni Norma e Sellier &amp; Bellot), con la fonte su ogni voce. Dove il produttore non pubblica la lunghezza, la deriva da rotazione non si calcola finché non la inserisci in una copia.</p>${filter}${items}<div class="btnrow"><button class="primary" data-act="new" data-kind="bullet">Nuova palla</button></div>`;
 }
 
 function viewMore() {
@@ -302,6 +313,8 @@ async function onChange(e) {
   const el = e.target;
   if (!el.dataset) return;
   if (el.dataset.unit) { store.settings.units[el.dataset.unit] = el.value; persist(); render(); return; }
+  if (el.dataset.act === 'filter-bullet-brand') { ui.bulletBrand = el.value; render(); return; }
+  if (el.dataset.act === 'filter-ammo-brand') { ui.ammoBrand = el.value; render(); return; }
   if (el.dataset.act === 'csv-toggle') { ui.form.csv.include[Number(el.dataset.i)] = el.checked; $('#csvStats').textContent = csvStats(); return; }
   if (el.dataset.act === 'csv-file' && el.files && el.files[0]) { await loadCsv(el.files[0]); return; }
   if (el.dataset.act === 'backup-file' && el.files && el.files[0]) { await restoreBackup(el.files[0]); return; }
@@ -377,6 +390,8 @@ function saveForm() {
   if (errors.length) { ui.form.errors = errors; render(); window.scrollTo && window.scrollTo(0, 0); return; }
   if (kind === 'bullet') {
     d.bcs = d.bcs.filter((b) => b.value > 0);
+    // Se il BC è stato modificato, le bande di velocità del produttore non valgono più.
+    for (const b of d.bcs) if (b.bands && b.value !== b.bands[0].value) delete b.bands;
     if (d.sourceText !== undefined) {
       const s = d.sourceText.trim();
       d.sources = s ? s.split(/\s*;\s*/) : [];
@@ -413,6 +428,7 @@ function onClick(e) {
     if (c.cartridgeId === el.dataset.id) c.cartridgeId = store.cartridges[0]?.id ?? null;
     persist(); render();
   }
+  else if (act === 'seed-ammo') addSeedAmmo(el.dataset.id);
   else if (act === 'save') saveForm();
   else if (act === 'cancel') { ui.form = null; render(); }
   else if (act === 'csv-clean') { const c = ui.form.csv; c.include = c.flags.map((x) => !x); $('#csvPanel').innerHTML = csvPanelInner(); }
@@ -422,6 +438,23 @@ function onClick(e) {
   else if (act === 'backup-dl') downloadBackup();
   else if (act === 'backup-copy') copyBackup();
   else if (act === 'reset') { if (confirm('Cancellare TUTTI i dati (carabine, cartucce, palle, impostazioni)?')) { replaceStore(emptyStore()); persist(); ui.tab = 'calc'; render(); } }
+}
+
+function addSeedAmmo(id) {
+  const x = SEED_AMMO.find((y) => y.id === id);
+  if (!x) return;
+  const c = newCartridge();
+  Object.assign(c, {
+    kind: 'factory', name: `${x.brand} ${x.line} ${num(x.weightGr, 0)} gr`, brand: `${x.brand} ${x.line}`, lot: '',
+    bulletId: x.bulletId, mvMps: x.mvMps, mvSource: 'declared',
+    bcOverride: x.bc ? { model: x.bc.model, value: x.bc.value } : { model: 'G7', value: null },
+    notes: `Codice ${x.code}. Velocità ${x.mvText} dichiarata dal produttore${x.barrelMm ? ` su canna di prova da ${Math.round(x.barrelMm)} mm` : ' (canna di prova non indicata)'}. ${x.bc ? `${x.bc.note}. ` : ''}${x.notes || ''} Misurala con il tuo cronografo.`.trim(),
+  });
+  ui.tab = 'cartridges';
+  ui.form = { kind: 'cartridge', draft: c, isNew: true, csv: null, errors: [] };
+  render();
+  window.scrollTo && window.scrollTo(0, 0);
+  toast('Controlla la velocità e salva.');
 }
 
 function applyCsv() {
