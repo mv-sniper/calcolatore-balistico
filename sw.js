@@ -1,6 +1,6 @@
 // Service worker: salva l'app sul dispositivo per usarla senza rete.
 // La versione della cache cambia a ogni build, così gli aggiornamenti arrivano da soli.
-const CACHE = 'balistica-8ea36ef578';
+const CACHE = 'balistica-8c4820257b';
 const FILES = ["./","./index.html","./style.css","./app.js","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./apple-touch-icon.png"];
 
 self.addEventListener('install', (e) => {

@@ -239,7 +239,7 @@ console.log('12b. Archivio palle e munizioni commerciali');
   const n0 = $$('article').length;
   ok(n0 > 40, `elenco palle dell'archivio (${n0} voci)`);
   choose('[data-act=filter-bullet-brand]', 'Berger');
-  ok($$('article').length === 14 && /Berger/.test($('main').textContent), 'filtro per marca: 14 palle Berger');
+  ok($$('article').length === 15 && /Berger/.test($('main').textContent), 'filtro per marca: 15 palle Berger');
   ok(/lunghezza 32,\d|lunghezza 3\d,\d/.test($('main').textContent) || /lunghezza/.test($('main').textContent), 'lunghezza mostrata');
   choose('[data-act=filter-bullet-brand]', '');
   click($$('nav button')[2]);

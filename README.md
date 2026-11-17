@@ -16,10 +16,10 @@ App web installabile (PWA) che funziona **senza rete**. Calcola alzo e deriva in
 - Modello a massa puntiforme (come Strelok Pro in modalità standard): conferma sempre con tiri reali e taratura del BC o della velocità.
 - Il reticolo disegnato è ricostruito da un'immagine: il punto rosso è esatto in MRAD, il disegno è schematico.
 - Non è modellata la sensibilità della polvere alla temperatura.
-- L'archivio contiene 54 palle .308 (Sierra, Berger, Lapua, Hornady, Nosler, più le palle delle munizioni Norma e Sellier & Bellot) e 21 munizioni commerciali (Federal, Hornady, Lapua, Norma, Sellier & Bellot, Fiocchi). Ogni voce riporta la fonte (catalogo o scheda del produttore, letti il 17/11/2026). Dove il produttore non pubblica un valore (lunghezza, G7, canna di prova) il campo resta vuoto.
+- L'archivio contiene 55 palle .308 (Sierra, Berger, Lapua, Hornady, Nosler, più le palle delle munizioni Norma e Sellier & Bellot) e 21 munizioni commerciali (Federal, Hornady, Lapua, Norma, Sellier & Bellot, Fiocchi). Ogni voce riporta la fonte (catalogo o scheda del produttore, letti il 17/11/2026). Dove il produttore non pubblica un valore (lunghezza, G7, canna di prova) il campo resta vuoto.
 - Le velocità delle munizioni sono quelle dichiarate su canne di prova: misura la tua con il cronografo.
 - Le polveri sono solo un elenco di nomi per la registrazione delle ricariche: l'app non contiene dati di carica. Usa i manuali dei produttori.
-- Il catalogo Sierra riporta un solo BC senza indicare il modello: nell'app è trattato come G1. Berger 30107 (185 gr Juggernaut OTM Tactical) è escluso perché le fonti Berger si contraddicono.
+- Il catalogo Sierra riporta un solo BC senza indicare il modello: nell'app è trattato come G1.
 
 ## Licenze e fonti
 - Le tabelle di resistenza standard G1 e G7 sono dati numerici standard, ricavati dalla libreria py-ballisticcalc 3.1.1 (licenza LGPL-3.0). Se l'app viene distribuita ad altri, va rispettata quella licenza o sostituite le tabelle.

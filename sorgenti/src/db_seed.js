@@ -66,6 +66,7 @@ export const SEED_BULLETS = [
   B('berger-30420', 'Berger', 'Tangent Target (Long Range BT) 175 gr #30420', 175, 1.314, [g7(0.262), g1(0.512)], SRC.berger, { notes: BERGER_LEN }),
   B('berger-30418', 'Berger', 'Tangent Target (Juggernaut Target) 185 gr #30418', 185, 1.344, [g7(0.284), g1(0.555)], SRC.berger, { notes: BERGER_LEN }),
   B('berger-30105', 'Berger', 'OTM Tactical 175 gr #30105', 175, 1.261, [g7(0.263), g1(0.512)], SRC.berger, { notes: BERGER_LEN }),
+  B('berger-30107', 'Berger', 'Juggernaut OTM Tactical 185 gr #30107', 185, 1.355, [g7(0.283), g1(0.552)], 'Berger, scheda prodotto e catalogo 2026: https://bergerbullets.com/product/30-caliber-185-grain-juggernaut-otm-tactical/', { notes: 'Lunghezza = OAL della scheda Berger. BC G1 0,552 / G7 0,283 confermati da scheda e catalogo 2026 (il catalogo 2024 riportava anche 0,682/0,349: valori non usati).' }),
   B('berger-30554', 'Berger', 'Elite Hunter 180 gr #30554', 180, 1.375, [g7(0.295), g1(0.576)], SRC.berger, { notes: BERGER_LEN }),
   B('berger-30570', 'Berger', 'Classic Hybrid Hunter 168 gr #30570', 168, 1.228, [g7(0.251), g1(0.498)], SRC.berger, { notes: BERGER_LEN }),
   B('berger-30571', 'Berger', 'Classic Hybrid Hunter 185 gr #30571', 185, 1.314, [g7(0.273), g1(0.533)], SRC.berger, { notes: BERGER_LEN }),
