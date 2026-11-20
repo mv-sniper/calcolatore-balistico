@@ -25,7 +25,7 @@ function viewCalc() {
   const clockOpts = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((h) => [h, h === 12 ? 'ore 12 (frontale)' : h === 3 ? 'ore 3 (da destra)' : h === 6 ? 'ore 6 (alle spalle)' : h === 9 ? 'ore 9 (da sinistra)' : `ore ${h}`]);
   const stepOpts = [25, 50, 100].map((v) => [v, `${v} ${FAMILIES.distance.units[U('distance')].label}`]);
   const pressureField = c.pressureMode === 'altitude'
-    ? numField({ scope: 'calc', path: 'altitudeM', label: 'Quota (m)', value: c.altitudeM, hint: 'Stima in atmosfera standard: meno precisa della pressione misurata.' })
+    ? numField({ scope: 'calc', path: 'altitudeM', label: 'Quota (m)', value: c.altitudeM, signed: true, hint: 'Stima in atmosfera standard: meno precisa della pressione misurata.' })
     : numField({ scope: 'calc', path: 'stationPa', label: 'Pressione di stazione', fam: 'pressure', value: c.stationPa, hint: 'Pressione assoluta misurata sul posto (non quella ridotta al livello del mare dei siti meteo).' });
   return `<h1>Calcola</h1>
 <div id="summary"></div>
@@ -35,7 +35,7 @@ function viewCalc() {
 </section>
 <section class="card"><h2>Condizioni ambientali</h2>
   <div class="grid2">
-    ${numField({ scope: 'calc', path: 'tempC', label: 'Temperatura', fam: 'temperature', value: c.tempC })}
+    ${numField({ scope: 'calc', path: 'tempC', label: 'Temperatura', fam: 'temperature', value: c.tempC, signed: true })}
     ${numField({ scope: 'calc', path: 'rhPct', label: 'Umidità relativa (%)', value: c.rhPct, hint: 'Se vuota: 0 %.' })}
   </div>
   ${selectField({ scope: 'calc', path: 'pressureMode', label: 'Pressione da', value: c.pressureMode, options: [['station', 'Pressione di stazione (misurata)'], ['altitude', 'Quota (stima)']] })}
@@ -44,14 +44,14 @@ function viewCalc() {
 <section class="card"><h2>Bersaglio e vento</h2>
   <div class="grid2">
     ${numField({ scope: 'calc', path: 'rangeM', label: 'Distanza', fam: 'distance', value: c.rangeM })}
-    ${numField({ scope: 'calc', path: 'angleDeg', label: 'Angolo di tiro (°)', value: c.angleDeg, hint: '+ in salita, − in discesa. Vuoto = 0.' })}
+    ${numField({ scope: 'calc', path: 'angleDeg', label: 'Angolo di tiro (°)', value: c.angleDeg, signed: true, hint: 'Salita +, discesa −: usa il tasto ± per il meno. Vuoto = 0.' })}
     ${numField({ scope: 'calc', path: 'windMps', label: 'Velocità del vento', fam: 'wind', value: c.windMps })}
     ${selectField({ scope: 'calc', path: 'windClock', label: 'Direzione del vento', value: c.windClock, options: clockOpts, kind: 'selnum' })}
   </div>
 </section>
 <details class="card"><summary>Coriolis e visualizzazione</summary>
   ${checkField({ scope: 'calc', path: 'coriolis', label: 'Applica Coriolis / Eötvös', value: c.coriolis, hint: 'Rilevante soprattutto oltre 800-1000 m.' })}
-  ${c.coriolis ? `<div class="grid2">${numField({ scope: 'calc', path: 'latDeg', label: 'Latitudine (°, nord +)', value: c.latDeg })}${numField({ scope: 'calc', path: 'azDeg', label: 'Direzione di tiro (° da nord, orario)', value: c.azDeg })}</div>` : ''}
+  ${c.coriolis ? `<div class="grid2">${numField({ scope: 'calc', path: 'latDeg', label: 'Latitudine (°, nord +, sud −)', value: c.latDeg, signed: true })}${numField({ scope: 'calc', path: 'azDeg', label: 'Direzione di tiro (° da nord, orario)', value: c.azDeg })}</div>` : ''}
   ${selectField({ scope: 'calc', path: 'tableStep', label: 'Passo della tabella', value: c.tableStep, options: stepOpts, kind: 'selnum' })}
   ${selectField({ scope: 'calc', path: 'splitMode', label: 'Dove mettere l\'alzo', value: c.splitMode, options: [['reticle-first', 'Prima nel reticolo, torretta solo per l\'eccedenza'], ['turret-first', 'Prima in torretta, il resto nel reticolo']] })}
   ${checkField({ scope: 'calc', path: 'windInReticle', label: 'Deriva solo nel reticolo', value: c.windInReticle, hint: 'Se disattivato, la deriva viene girata in torretta e nel reticolo resta il residuo.' })}
@@ -163,7 +163,7 @@ function rifleForm(d) {
 <section class="card"><h2>Condizioni dell'azzeramento (facoltative)</h2>
   <p class="sub">Se non le ricordi lascia vuoto: l'app non applicherà correzioni per le differenze di atmosfera tra zero e tiro.</p>
   <div class="grid2">
-    ${numField({ scope: S, path: 'zeroEnv.tempC', label: 'Temperatura', fam: 'temperature', value: d.zeroEnv?.tempC })}
+    ${numField({ scope: S, path: 'zeroEnv.tempC', label: 'Temperatura', fam: 'temperature', value: d.zeroEnv?.tempC, signed: true })}
     ${numField({ scope: S, path: 'zeroEnv.stationPa', label: 'Pressione di stazione', fam: 'pressure', value: d.zeroEnv?.stationPa })}
     ${numField({ scope: S, path: 'zeroEnv.rhPct', label: 'Umidità (%)', value: d.zeroEnv?.rhPct })}
   </div>
@@ -236,7 +236,7 @@ function cartridgeForm(d) {
     ${numField({ scope: S, path: 'mvSdMps', label: 'Deviazione standard', fam: 'speed', value: d.mvSdMps })}
     ${numField({ scope: S, path: 'mvEsMps', label: 'Dispersione estrema (ES)', fam: 'speed', value: d.mvEsMps })}
     ${numField({ scope: S, path: 'mvN', label: 'Numero di colpi', value: d.mvN, dec: 0 })}
-    ${numField({ scope: S, path: 'mvTempC', label: 'Temperatura alla misura', fam: 'temperature', value: d.mvTempC })}
+    ${numField({ scope: S, path: 'mvTempC', label: 'Temperatura alla misura', fam: 'temperature', value: d.mvTempC, signed: true })}
     ${numField({ scope: S, path: 'chronoDistMm', label: 'Distanza volata-cronografo', fam: 'length', value: d.chronoDistMm })}
   </div>
   ${selectField({ scope: S, path: 'mvSource', label: 'Origine del dato', value: d.mvSource, options: [['manual', 'Misurata (inserita a mano)'], ['garmin', 'Cronografo Garmin (CSV)'], ['declared', 'Dichiarata dal produttore (canna di prova)']] })}
@@ -410,11 +410,24 @@ function saveForm() {
   ui.form = null; render(); toast('Salvato.');
 }
 
+// Tasto ±: la tastiera numerica di iPhone e iPad non ha il segno meno.
+function negateField(btn) {
+  const input = btn.parentElement && btn.parentElement.querySelector('input[data-path]');
+  if (!input) return;
+  const v = input.value.trim();
+  input.value = v.startsWith('-') ? v.slice(1) : `-${v}`;
+  applyBinding(input);
+  if (input.dataset.scope === 'calc') updateResults();
+  input.focus();
+  try { const n = input.value.length; input.setSelectionRange(n, n); } catch (e) { /* alcuni campi non lo permettono */ }
+}
+
 function onClick(e) {
   const el = e.target.closest('[data-act]');
   if (!el || el.tagName === 'INPUT') return;
   const act = el.dataset.act;
   if (act === 'tab') { ui.form = null; ui.tab = el.dataset.tab; render(); window.scrollTo && window.scrollTo(0, 0); }
+  else if (act === 'negate') negateField(el)
   else if (act === 'starter') { createStarterProfile(); render(); }
   else if (act === 'new') openForm(el.dataset.kind);
   else if (act === 'edit') openForm(el.dataset.kind, el.dataset.id);

@@ -11,14 +11,14 @@ function unitSelect(fam, label) {
 }
 
 // value in unità base; l'input mostra l'unità scelta dall'utente.
-export function numField({ scope, path, label, fam, value, ph = '', hint = '', dec }) {
+export function numField({ scope, path, label, fam, value, ph = '', hint = '', dec, signed = false }) {
   let shown = '';
   if (value != null && Number.isFinite(value)) {
     const v = fam ? fromBase(fam, U(fam), value) : value;
     const d = dec ?? (fam ? FAMILIES[fam].units[U(fam)].dec + 2 : 4);
     shown = String(Number(v.toFixed(d))).replace('.', ',');
   }
-  return `<label class="fld"><span>${esc(label)}</span><div class="inp"><input type="text" inputmode="decimal" autocomplete="off" data-scope="${scope}" data-path="${path}" data-kind="num"${fam ? ` data-fam="${fam}"` : ''} value="${esc(shown)}" placeholder="${esc(ph)}">${fam ? unitSelect(fam, label) : ''}</div>${hint ? `<small>${esc(hint)}</small>` : ''}</label>`;
+  return `<label class="fld"><span>${esc(label)}</span><div class="inp"><input type="text" inputmode="decimal" autocomplete="off" data-scope="${scope}" data-path="${path}" data-kind="num"${fam ? ` data-fam="${fam}"` : ''} value="${esc(shown)}" placeholder="${esc(ph)}">${signed ? '<button type="button" class="sign" data-act="negate" aria-label="Cambia segno (più o meno)">±</button>' : ''}${fam ? unitSelect(fam, label) : ''}</div>${hint ? `<small>${esc(hint)}</small>` : ''}</label>`;
 }
 
 export function textField({ scope, path, label, value, list = '', ph = '', hint = '' }) {

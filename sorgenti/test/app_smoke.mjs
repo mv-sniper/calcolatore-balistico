@@ -273,11 +273,52 @@ console.log('12b. Archivio palle e munizioni commerciali');
   ok(r.single.spinApplied === false && r.warnings.some((x) => /lunghezza/i.test(x)), 'Hornady: lunghezza non pubblicata -> avviso');
 }
 
+console.log('12c. Segno meno con il tasto ± (tastiera di iPhone senza "-")');
+{
+  click($$('nav button')[0]);
+  typeInto('[data-path=angleDeg]', '');
+  const angleBtn = () => $('[data-path=angleDeg]').parentElement.querySelector('[data-act=negate]');
+  ok(!!angleBtn(), 'accanto all\'angolo c\'è il tasto ±');
+  typeInto('[data-path=rangeM]', '500');
+  typeInto('[data-path=windMps]', '0');
+  typeInto('[data-path=angleDeg]', '20');
+  const up = bal().compute().single.elevationMrad;
+  near(bal().store.settings.calc.angleDeg, 20, 1e-9, 'angolo +20°');
+  click(angleBtn());
+  near(bal().store.settings.calc.angleDeg, -20, 1e-9, 'dopo ±: -20°');
+  ok($('[data-path=angleDeg]').value === '-20', 'il campo mostra -20');
+  const down = bal().compute().single.elevationMrad;
+  typeInto('[data-path=angleDeg]', '0');
+  const flat = bal().compute().single.elevationMrad;
+  typeInto('[data-path=angleDeg]', '-20');
+  ok(Math.abs(down - up) < 0.05 && up < flat - 0.1, `salita e discesa a 20° danno alzi quasi uguali (differenza di pochi centesimi per la variazione di velocità), minori di quello in piano (${up.toFixed(3)} / ${down.toFixed(3)} / piano ${flat.toFixed(3)})`);
+  click(angleBtn());
+  near(bal().store.settings.calc.angleDeg, 20, 1e-9, 'secondo tocco: di nuovo +20°');
+  // campo vuoto: ± inserisce il meno, poi si digitano le cifre
+  typeInto('[data-path=angleDeg]', '');
+  click(angleBtn());
+  ok($('[data-path=angleDeg]').value === '-', 'campo vuoto: compare il segno meno');
+  typeInto('[data-path=angleDeg]', '-7,5');
+  near(bal().store.settings.calc.angleDeg, -7.5, 1e-9, 'digitando le cifre dopo il meno: -7,5°');
+  typeInto('[data-path=angleDeg]', '');
+  // temperatura sotto zero
+  typeInto('[data-path=tempC]', '5');
+  click($('[data-path=tempC]').parentElement.querySelector('[data-act=negate]'));
+  near(bal().store.settings.calc.tempC, -5, 1e-9, 'temperatura -5 °C');
+  choose('select[data-unit=temperature]', 'F');
+  near(Number($('[data-path=tempC]').value.replace(',', '.')), 23, 0.01, '-5 °C = 23 °F');
+  typeInto('[data-path=tempC]', '14');
+  click($('[data-path=tempC]').parentElement.querySelector('[data-act=negate]'));
+  near(bal().store.settings.calc.tempC, (-14 - 32) / 1.8, 0.001, '-14 °F convertiti in °C');
+  choose('select[data-unit=temperature]', 'C');
+  typeInto('[data-path=tempC]', '15');
+}
+
 console.log('13. Persistenza');
 {
   const saved = JSON.parse(w.localStorage.getItem('ballistica.v1'));
   ok(saved.rifles.length === bal().store.rifles.length, 'i dati sono in localStorage');
-  ok(saved.settings.calc.rangeM === 1100, 'le impostazioni di calcolo sono salvate');
+  ok(saved.settings.calc.rangeM === 500, 'le impostazioni di calcolo sono salvate');
 }
 
 ok(errors.length === 0, 'nessun errore JavaScript in pagina ' + errors.join('|'));
